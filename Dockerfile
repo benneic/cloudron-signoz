@@ -43,6 +43,9 @@ RUN chmod +x /usr/local/bin/clickhouse-entrypoint.sh
 
 # ZooKeeper (Bitnami layout; Java is bundled under /opt/bitnami/java)
 COPY --from=zookeeper-upstream /opt/bitnami /opt/bitnami
+# Match upstream compose user: root (zookeeper-env.sh defaults to dropping to UID zookeeper)
+RUN sed -i 's/export ZOO_DAEMON_USER="zookeeper"/export ZOO_DAEMON_USER="root"/' /opt/bitnami/scripts/zookeeper-env.sh && \
+    sed -i 's/export ZOO_DAEMON_GROUP="zookeeper"/export ZOO_DAEMON_GROUP="root"/' /opt/bitnami/scripts/zookeeper-env.sh
 
 # SigNoz server (community binary + UI assets)
 COPY --from=signoz-upstream /root/signoz /opt/signoz/signoz

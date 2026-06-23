@@ -39,22 +39,23 @@ stop_background() {
   fi
 }
 
-mkdir -p /app/data/clickhouse /app/data/zookeeper /app/data/config /run/signoz /run/supervisor
-chown -R cloudron:cloudron /app/data/clickhouse /app/data/config /run/signoz /run/supervisor
-# Bitnami ZooKeeper drops to UID 1001; keep data dir writable by that user
-chown -R 1001:1001 /app/data/zookeeper
+mkdir -p /app/data/clickhouse /app/data/zookeeper /app/data/config /run/signoz /run/supervisor /var/log/clickhouse-server
+chown -R cloudron:cloudron /app/data/config /run/signoz /run/supervisor
+chown -R root:root /app/data/zookeeper
 
-# Bitnami ZooKeeper expects data under /bitnami/zookeeper (persisted via localstorage)
-rm -rf /bitnami/zookeeper
-ln -sfn /app/data/zookeeper /bitnami/zookeeper
+# Bitnami ZooKeeper persists snapshots under /bitnami/zookeeper/data only
+mkdir -p /app/data/zookeeper/data /bitnami/zookeeper
+rm -rf /bitnami/zookeeper/data
+ln -sfn /app/data/zookeeper/data /bitnami/zookeeper/data
+chown -R root:root /app/data/zookeeper /bitnami/zookeeper
 
-# Persistent ClickHouse data under localstorage
+# Persistent ClickHouse data under localstorage (ClickHouse runs as root; owner must match)
 if [[ ! -L /var/lib/clickhouse ]]; then
   rm -rf /var/lib/clickhouse
   ln -sfn /app/data/clickhouse /var/lib/clickhouse
 fi
-chown -h cloudron:cloudron /var/lib/clickhouse
-chown -R cloudron:cloudron /app/data/clickhouse
+chown -h root:root /var/lib/clickhouse
+chown -R root:root /app/data/clickhouse /var/log/clickhouse-server
 
 # Writable otel configs
 cp /app/code/config/otel-collector-config.yaml /run/signoz/otel-collector-config.yaml
@@ -129,11 +130,11 @@ export SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__FROM="${CLOUDRON_MAIL_FROM:-no-re
 chmod 600 /run/signoz/runtime.env
 chown cloudron:cloudron /run/signoz/runtime.env
 
-chmod +x /app/code/scripts/run-signoz.sh /app/code/scripts/run-otel-collector.sh /app/code/scripts/run-zookeeper.sh
+chmod +x /app/code/scripts/*.sh 2>/dev/null || true
 
 # --- One-shot init: ZK + ClickHouse + schema migrations ---
 start_background zookeeper /app/code/scripts/run-zookeeper.sh
-wait_for "ZooKeeper" "curl -sf http://127.0.0.1:8080/commands/ruok | grep -q null"
+wait_for "ZooKeeper" "curl -sf http://127.0.0.1:8079/commands/ruok | grep -q null"
 
 export CLICKHOUSE_SKIP_USER_SETUP=1
 export CLICKHOUSE_RUN_AS_ROOT=1
