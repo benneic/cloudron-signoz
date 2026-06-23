@@ -60,6 +60,7 @@ jobs:
       - name: Read component build args
         id: args
         run: |
+          echo "signoz=$(jq -r .upstreamVersion CloudronManifest.json)" >> "$GITHUB_OUTPUT"
           echo "otelcol=$(sed -n 's/^ARG OTELCOL_VERSION=//p' Dockerfile | head -1)" >> "$GITHUB_OUTPUT"
           echo "clickhouse=$(sed -n 's/^ARG CLICKHOUSE_VERSION=//p' Dockerfile | head -1)" >> "$GITHUB_OUTPUT"
           echo "zookeeper=$(sed -n 's/^ARG ZOOKEEPER_VERSION=//p' Dockerfile | head -1)" >> "$GITHUB_OUTPUT"
@@ -87,7 +88,7 @@ jobs:
           file: ./Dockerfile
           push: true
           build-args: |
-            SIGNOZ_VERSION=${{ steps.ver.outputs.ver }}
+            SIGNOZ_VERSION=${{ steps.args.outputs.signoz }}
             OTELCOL_VERSION=${{ steps.args.outputs.otelcol }}
             CLICKHOUSE_VERSION=${{ steps.args.outputs.clickhouse }}
             ZOOKEEPER_VERSION=${{ steps.args.outputs.zookeeper }}
