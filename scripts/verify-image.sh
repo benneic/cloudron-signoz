@@ -39,6 +39,7 @@ done
 docker exec "$PG_NAME" pg_isready -U signoz
 
 docker run -d --name "$APP_NAME" --network "$NETWORK" \
+  --ulimit nofile=262144:262144 \
   -p 18080:8080 \
   -e CLOUDRON_APP_DOMAIN=signoz.test \
   -e CLOUDRON_APP_ORIGIN=https://signoz.test \
@@ -50,8 +51,8 @@ docker run -d --name "$APP_NAME" --network "$NETWORK" \
   -e CLOUDRON_MAIL_FROM=alerts@signoz.test \
   "$IMAGE" >/dev/null
 
-echo "Waiting for SigNoz health (up to 6 minutes)..."
-for i in $(seq 1 72); do
+echo "Waiting for SigNoz health (up to 10 minutes)..."
+for i in $(seq 1 120); do
   if docker exec "$APP_NAME" wget -q -O- http://127.0.0.1:8080/api/v1/health 2>/dev/null | grep -q '"status":"ok"'; then
     echo "Health check passed."
     exit 0

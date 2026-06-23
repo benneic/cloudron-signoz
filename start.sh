@@ -40,12 +40,13 @@ stop_background() {
 }
 
 mkdir -p /app/data/clickhouse /app/data/zookeeper /app/data/config /run/signoz /run/supervisor
-chown -R cloudron:cloudron /app/data /run/signoz /run/supervisor
+chown -R cloudron:cloudron /app/data/clickhouse /app/data/config /run/signoz /run/supervisor
+# Bitnami ZooKeeper drops to UID 1001; keep data dir writable by that user
+chown -R 1001:1001 /app/data/zookeeper
 
 # Bitnami ZooKeeper expects data under /bitnami/zookeeper (persisted via localstorage)
 rm -rf /bitnami/zookeeper
 ln -sfn /app/data/zookeeper /bitnami/zookeeper
-chown -h cloudron:cloudron /bitnami/zookeeper
 
 # Persistent ClickHouse data under localstorage
 if [[ ! -L /var/lib/clickhouse ]]; then
