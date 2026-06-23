@@ -1,0 +1,33 @@
+{
+  "name": "@cloudron/manifest-format",
+  "version": "6.2.1",
+  "description": "Cloudron Manifest Format",
+  "type": "module",
+  "main": "index.js",
+  "exports": "./index.js",
+  "scripts": {
+    "test": "mocha --bail --no-timeouts test/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@git.cloudron.io:6000/platform/manifest-format.git"
+  },
+  "bugs": {
+    "url": "https://git.cloudron.io/platform/manifest-format/issues"
+  },
+  "private": false,
+  "author": "Girish Ramakrishnan <girish@cloudron.io>",
+  "license": "MIT",
+  "dependencies": {
+    "@cloudron/safetydance": "^3.0.1",
+    "ajv": "^8.18.0",
+    "cron": "^4.4.0",
+    "semver": "^7.7.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.2.1",
+    "globals": "^17.5.0",
+    "mocha": "^11.7.5"
+  }
+}

@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       signoz_version:
-        description: "Must match CloudronManifest.json and Dockerfile SIGNOZ_VERSION on this ref"
+        description: "Cloudron package version (must match CloudronManifest.json version on this ref)"
         required: true
         type: string
 
@@ -45,10 +45,15 @@ jobs:
       - name: Verify manifest matches
         run: |
           M=$(jq -r .version CloudronManifest.json)
+          U=$(jq -r .upstreamVersion CloudronManifest.json)
           D=$(sed -n 's/^ARG SIGNOZ_VERSION=//p' Dockerfile | head -1)
           V="${{ steps.ver.outputs.ver }}"
-          if [ "$M" != "$V" ] || [ "$D" != "$V" ]; then
-            echo "Version $V != CloudronManifest ($M) or Dockerfile ($D)" >&2
+          if [ "$M" != "$V" ]; then
+            echo "Tag/package version $V != CloudronManifest version ($M)" >&2
+            exit 1
+          fi
+          if [ "$D" != "$U" ]; then
+            echo "Dockerfile SIGNOZ_VERSION ($D) != manifest upstreamVersion ($U)" >&2
             exit 1
           fi
 
