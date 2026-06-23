@@ -21,7 +21,9 @@ Default memory limit: **6 GB**. SigNoz upstream requires at least 4 GB; 6 GB is 
 
 The package is published through a version catalog file:
 
-- Catalog URL: `https://raw.githubusercontent.com/benneic/cloudron-signoz/main/CloudronVersions.json`
+```bash
+   [cloudron install --versions-url https://raw.githubusercontent.com/benneic/cloudron-signoz/main/CloudronVersions.json](https://raw.githubusercontent.com/benneic/cloudron-signoz/main/CloudronVersions.json)
+```
 
 Choose one install path:
 
