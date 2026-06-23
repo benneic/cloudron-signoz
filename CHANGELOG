@@ -1,0 +1,5 @@
+[0.129.0]
+* Initial public packaging for Cloudron: unified SigNoz v0.129.0 stack (ZooKeeper, ClickHouse, SigNoz, OTel collector v0.144.5).
+* Addons: localstorage, postgresql (metadata), sendmail (alert SMTP).
+* OTLP TCP ports 4317/4318; health check `GET /api/v1/health`.
+* Automated upstream watch and catalog publishing via GitHub Actions.

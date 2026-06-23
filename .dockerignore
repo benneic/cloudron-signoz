@@ -1,0 +1,11 @@
+.git
+.github
+node_modules
+*.md
+!README.md
+.cursor
+CloudronVersions.json
+package.json
+package-lock.json
+LICENSE
+assets

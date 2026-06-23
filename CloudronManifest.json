@@ -1,0 +1,51 @@
+{
+  "id": "com.signoz.cloudronapp",
+  "title": "SigNoz",
+  "author": "SigNoz (upstream) <hello@signoz.io>",
+  "tagline": "OpenTelemetry-native observability — packaged for Cloudron",
+  "version": "0.129.0",
+  "upstreamVersion": "0.129.0",
+  "description": "file://DESCRIPTION.md",
+  "changelog": "file://CHANGELOG",
+  "postInstallMessage": "file://POSTINSTALL.md",
+  "icon": "file://icon.png",
+  "iconUrl": "https://avatars.githubusercontent.com/u/87304438?s=256&v=4",
+  "website": "https://signoz.io/",
+  "documentationUrl": "https://signoz.io/docs/",
+  "contactEmail": "hello@signoz.io",
+  "configurePath": "/",
+  "packagerName": "SigNoz (Cloudron package) by @benneic",
+  "packagerUrl": "https://github.com/benneic/cloudron-signoz",
+  "tags": [
+    "monitoring",
+    "hosting",
+    "sync"
+  ],
+  "mediaLinks": [
+    "https://signoz.io/img/hero.webp"
+  ],
+  "healthCheckPath": "/api/v1/health",
+  "httpPort": 8080,
+  "minBoxVersion": "9.1.0",
+  "memoryLimit": 6442450944,
+  "manifestVersion": 2,
+  "tcpPorts": {
+    "OTLP_GRPC": {
+      "title": "OTLP gRPC",
+      "description": "OpenTelemetry gRPC ingestion endpoint",
+      "defaultValue": 4317,
+      "containerPort": 4317
+    },
+    "OTLP_HTTP": {
+      "title": "OTLP HTTP",
+      "description": "OpenTelemetry HTTP ingestion endpoint",
+      "defaultValue": 4318,
+      "containerPort": 4318
+    }
+  },
+  "addons": {
+    "localstorage": {},
+    "sendmail": {},
+    "postgresql": {}
+  }
+}
