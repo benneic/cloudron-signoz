@@ -40,8 +40,6 @@ RUN chmod +x /usr/local/bin/clickhouse-entrypoint.sh
 # ZooKeeper (Bitnami layout from signoz/zookeeper image)
 COPY --from=zookeeper-upstream /opt/bitnami /opt/bitnami
 COPY --from=zookeeper-upstream /usr/lib/jvm /usr/lib/jvm
-COPY --from=zookeeper-upstream /usr/lib/libnss_wrapper.so /usr/lib/libnss_wrapper.so
-COPY --from=zookeeper-upstream /usr/lib/libnss_wrapper.so.2 /usr/lib/libnss_wrapper.so.2
 
 # SigNoz server (community binary + UI assets)
 COPY --from=signoz-upstream /root/signoz /opt/signoz/signoz
