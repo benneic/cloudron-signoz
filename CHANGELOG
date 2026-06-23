@@ -1,3 +1,6 @@
+[0.129.1]
+* Fix startup on Cloudron read-only filesystem: ClickHouse logs/data and ZooKeeper config under `/app/data` and `/run`.
+
 [0.129.0.1]
 * Fix startup on Cloudron read-only filesystem: ClickHouse logs/data and ZooKeeper config under `/app/data` and `/run`.
 
