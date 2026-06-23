@@ -18,8 +18,8 @@ docker run --rm "${IMAGE}" sh -c '
   set -e
   command -v /opt/signoz/signoz
   command -v /usr/local/bin/signoz-otel-collector
-  command -v /usr/bin/clickhouse-server
   test -x /opt/bitnami/scripts/zookeeper/run.sh
+  test -x /app/code/scripts/run-zookeeper.sh
 '
 
 echo "Starting postgres sidecar and app container..."

@@ -42,6 +42,11 @@ stop_background() {
 mkdir -p /app/data/clickhouse /app/data/zookeeper /app/data/config /run/signoz /run/supervisor
 chown -R cloudron:cloudron /app/data /run/signoz /run/supervisor
 
+# Bitnami ZooKeeper expects data under /bitnami/zookeeper (persisted via localstorage)
+rm -rf /bitnami/zookeeper
+ln -sfn /app/data/zookeeper /bitnami/zookeeper
+chown -h cloudron:cloudron /bitnami/zookeeper
+
 # Persistent ClickHouse data under localstorage
 if [[ ! -L /var/lib/clickhouse ]]; then
   rm -rf /var/lib/clickhouse
@@ -123,19 +128,10 @@ export SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__FROM="${CLOUDRON_MAIL_FROM:-no-re
 chmod 600 /run/signoz/runtime.env
 chown cloudron:cloudron /run/signoz/runtime.env
 
-chmod +x /app/code/scripts/run-signoz.sh /app/code/scripts/run-otel-collector.sh
+chmod +x /app/code/scripts/run-signoz.sh /app/code/scripts/run-otel-collector.sh /app/code/scripts/run-zookeeper.sh
 
 # --- One-shot init: ZK + ClickHouse + schema migrations ---
-export JAVA_HOME="/opt/bitnami/java"
-export PATH="/opt/bitnami/common/bin:/opt/bitnami/java/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-export ZOO_SERVER_ID=1
-export ALLOW_ANONYMOUS_LOGIN=yes
-export ZOO_AUTOPURGE_INTERVAL=1
-export ZOO_ENABLE_PROMETHEUS_METRICS=yes
-export ZOO_PROMETHEUS_METRICS_PORT_NUMBER=9141
-export ZOO_DATA_DIR=/app/data/zookeeper
-
-start_background zookeeper /opt/bitnami/scripts/zookeeper/run.sh
+start_background zookeeper /app/code/scripts/run-zookeeper.sh
 wait_for "ZooKeeper" "curl -sf http://127.0.0.1:8080/commands/ruok | grep -q null"
 
 export CLICKHOUSE_SKIP_USER_SETUP=1
