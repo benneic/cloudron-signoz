@@ -1,3 +1,6 @@
+[0.129.3]
+* Fix SigNoz crash on Cloudron: run server from writable `/app/data/signoz` (Prometheus `queries.active` mmap).
+
 [0.129.2]
 * Fix ZooKeeper on Cloudron: patch Bitnami env defaults that reset paths to read-only `/bitnami`, and set `ZOOCFGDIR` so `zkServer.sh` reads config from `/run`.
 

@@ -30,13 +30,16 @@ docker run -d --name "$PG_NAME" --network "$NETWORK" \
   -e POSTGRES_DB=signoz \
   postgres:14-alpine >/dev/null
 
-for i in $(seq 1 30); do
+for i in $(seq 1 60); do
   if docker exec "$PG_NAME" pg_isready -U signoz >/dev/null 2>&1; then
     break
   fi
+  if [[ "$i" -eq 60 ]]; then
+    echo "Postgres sidecar did not become ready in time" >&2
+    exit 1
+  fi
   sleep 1
 done
-docker exec "$PG_NAME" pg_isready -U signoz
 
 docker run -d --name "$APP_NAME" --network "$NETWORK" \
   --ulimit nofile=262144:262144 \

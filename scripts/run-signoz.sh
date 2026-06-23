@@ -8,5 +8,7 @@ if [[ -f /run/signoz/runtime.env ]]; then
   set +a
 fi
 
-cd /opt/signoz
-exec ./signoz server
+# Prometheus active-query log (queries.active) must live on writable localstorage
+mkdir -p /app/data/signoz
+cd /app/data/signoz
+exec /opt/signoz/signoz server

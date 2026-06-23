@@ -42,9 +42,10 @@ stop_background() {
 mkdir -p /app/data/clickhouse/{log,tmp,user_files,access,format_schemas} \
   /app/data/zookeeper/{data,logs} \
   /app/data/bitnami \
+  /app/data/signoz \
   /app/data/config \
   /run/signoz /run/supervisor /run/zookeeper/conf
-chown -R cloudron:cloudron /app/data/config /run/signoz /run/supervisor /run/zookeeper
+chown -R cloudron:cloudron /app/data/config /app/data/signoz /run/signoz /run/supervisor /run/zookeeper
 chown -R root:root /app/data/clickhouse /app/data/zookeeper
 
 # Bitnami ZooKeeper writes zoo.cfg under ZOO_CONF_DIR (/run) on first start

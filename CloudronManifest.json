@@ -3,7 +3,7 @@
   "title": "SigNoz",
   "author": "SigNoz (upstream) <hello@signoz.io>",
   "tagline": "OpenTelemetry-native observability — packaged for Cloudron",
-  "version": "0.129.2",
+  "version": "0.129.3",
   "upstreamVersion": "0.129.0",
   "description": "file://DESCRIPTION.md",
   "changelog": "file://CHANGELOG",
