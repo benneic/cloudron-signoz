@@ -41,6 +41,7 @@ stop_background() {
 
 mkdir -p /app/data/clickhouse/{log,tmp,user_files,access,format_schemas} \
   /app/data/zookeeper/{data,logs} \
+  /app/data/bitnami \
   /app/data/config \
   /run/signoz /run/supervisor /run/zookeeper/conf
 chown -R cloudron:cloudron /app/data/config /run/signoz /run/supervisor /run/zookeeper
@@ -49,6 +50,9 @@ chown -R root:root /app/data/clickhouse /app/data/zookeeper
 # Bitnami ZooKeeper writes zoo.cfg under ZOO_CONF_DIR (/run) on first start
 if [[ ! -f /run/zookeeper/conf/zoo_sample.cfg ]]; then
   cp /opt/bitnami/zookeeper/conf/zoo_sample.cfg /run/zookeeper/conf/zoo_sample.cfg
+fi
+if [[ ! -f /run/zookeeper/conf/log4j.properties ]]; then
+  cp /opt/bitnami/zookeeper/conf/log4j.properties /run/zookeeper/conf/log4j.properties
 fi
 
 # Writable otel configs

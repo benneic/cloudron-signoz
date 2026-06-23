@@ -1,3 +1,6 @@
+[0.129.2]
+* Fix ZooKeeper on Cloudron: patch Bitnami env defaults that reset paths to read-only `/bitnami`, and set `ZOOCFGDIR` so `zkServer.sh` reads config from `/run`.
+
 [0.129.1]
 * Fix startup on Cloudron read-only filesystem: ClickHouse logs/data and ZooKeeper config under `/app/data` and `/run`.
 

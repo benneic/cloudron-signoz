@@ -43,9 +43,14 @@ RUN chmod +x /usr/local/bin/clickhouse-entrypoint.sh
 
 # ZooKeeper (Bitnami layout; Java is bundled under /opt/bitnami/java)
 COPY --from=zookeeper-upstream /opt/bitnami /opt/bitnami
-# Match upstream compose user: root (zookeeper-env.sh defaults to dropping to UID zookeeper)
+# Match upstream compose user: root; redirect Bitnami paths off read-only root
 RUN sed -i 's/export ZOO_DAEMON_USER="zookeeper"/export ZOO_DAEMON_USER="root"/' /opt/bitnami/scripts/zookeeper-env.sh && \
-    sed -i 's/export ZOO_DAEMON_GROUP="zookeeper"/export ZOO_DAEMON_GROUP="root"/' /opt/bitnami/scripts/zookeeper-env.sh
+    sed -i 's/export ZOO_DAEMON_GROUP="zookeeper"/export ZOO_DAEMON_GROUP="root"/' /opt/bitnami/scripts/zookeeper-env.sh && \
+    sed -i 's|export BITNAMI_VOLUME_DIR="/bitnami"|export BITNAMI_VOLUME_DIR="/app/data/bitnami"|' /opt/bitnami/scripts/zookeeper-env.sh && \
+    sed -i 's|export ZOO_VOLUME_DIR="/bitnami/zookeeper"|export ZOO_VOLUME_DIR="/app/data/zookeeper"|' /opt/bitnami/scripts/zookeeper-env.sh && \
+    sed -i 's|export ZOO_CONF_DIR="${ZOO_BASE_DIR}/conf"|export ZOO_CONF_DIR="/run/zookeeper/conf"|' /opt/bitnami/scripts/zookeeper-env.sh && \
+    sed -i 's|export ZOO_LOG_DIR="${ZOO_BASE_DIR}/logs"|export ZOO_LOG_DIR="/app/data/zookeeper/logs"|' /opt/bitnami/scripts/zookeeper-env.sh && \
+    sed -i 's|export ZOO_ADMIN_SERVER_PORT_NUMBER="${ZOO_ADMIN_SERVER_PORT_NUMBER:-8080}"|export ZOO_ADMIN_SERVER_PORT_NUMBER="${ZOO_ADMIN_SERVER_PORT_NUMBER:-8079}"|' /opt/bitnami/scripts/zookeeper-env.sh
 
 # SigNoz server (community binary + UI assets)
 COPY --from=signoz-upstream /root/signoz /opt/signoz/signoz

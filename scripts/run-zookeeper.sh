@@ -16,5 +16,6 @@ export ZOO_ADMIN_SERVER_PORT_NUMBER="${ZOO_ADMIN_SERVER_PORT_NUMBER:-8079}"
 export ZOO_VOLUME_DIR=/app/data/zookeeper
 export ZOO_LOG_DIR=/app/data/zookeeper/logs
 export ZOO_CONF_DIR=/run/zookeeper/conf
+export ZOOCFGDIR=/run/zookeeper/conf
 
 exec /opt/bitnami/scripts/zookeeper/entrypoint.sh /opt/bitnami/scripts/zookeeper/run.sh
