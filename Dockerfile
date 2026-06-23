@@ -59,15 +59,14 @@ RUN chmod +x /usr/local/bin/signoz-otel-collector
 
 RUN mkdir -p \
   /app/code/supervisor/conf.d \
+  /app/code/config/clickhouse/user_scripts \
   /etc/clickhouse-server/config.d \
-  /var/lib/clickhouse/user_scripts \
-  /bitnami/zookeeper \
   /run/signoz \
   /run/supervisor
 
 COPY config/clickhouse/config.xml config/clickhouse/users.xml config/clickhouse/custom-function.xml /etc/clickhouse-server/
-COPY config/clickhouse/cluster.xml /etc/clickhouse-server/config.d/cluster.xml
-COPY config/clickhouse/user_scripts/ /var/lib/clickhouse/user_scripts/
+COPY config/clickhouse/cluster.xml config/clickhouse/cloudron-paths.xml /etc/clickhouse-server/config.d/
+COPY config/clickhouse/user_scripts/ /app/code/config/clickhouse/user_scripts/
 COPY config/otel-collector-config.yaml config/otel-collector-opamp-config.yaml /app/code/config/
 COPY start.sh /app/code/start.sh
 COPY scripts/ /app/code/scripts/

@@ -39,23 +39,17 @@ stop_background() {
   fi
 }
 
-mkdir -p /app/data/clickhouse /app/data/zookeeper /app/data/config /run/signoz /run/supervisor /var/log/clickhouse-server
-chown -R cloudron:cloudron /app/data/config /run/signoz /run/supervisor
-chown -R root:root /app/data/zookeeper
+mkdir -p /app/data/clickhouse/{log,tmp,user_files,access,format_schemas} \
+  /app/data/zookeeper/{data,logs} \
+  /app/data/config \
+  /run/signoz /run/supervisor /run/zookeeper/conf
+chown -R cloudron:cloudron /app/data/config /run/signoz /run/supervisor /run/zookeeper
+chown -R root:root /app/data/clickhouse /app/data/zookeeper
 
-# Bitnami ZooKeeper persists snapshots under /bitnami/zookeeper/data only
-mkdir -p /app/data/zookeeper/data /bitnami/zookeeper
-rm -rf /bitnami/zookeeper/data
-ln -sfn /app/data/zookeeper/data /bitnami/zookeeper/data
-chown -R root:root /app/data/zookeeper /bitnami/zookeeper
-
-# Persistent ClickHouse data under localstorage (ClickHouse runs as root; owner must match)
-if [[ ! -L /var/lib/clickhouse ]]; then
-  rm -rf /var/lib/clickhouse
-  ln -sfn /app/data/clickhouse /var/lib/clickhouse
+# Bitnami ZooKeeper writes zoo.cfg under ZOO_CONF_DIR (/run) on first start
+if [[ ! -f /run/zookeeper/conf/zoo_sample.cfg ]]; then
+  cp /opt/bitnami/zookeeper/conf/zoo_sample.cfg /run/zookeeper/conf/zoo_sample.cfg
 fi
-chown -h root:root /var/lib/clickhouse
-chown -R root:root /app/data/clickhouse /var/log/clickhouse-server
 
 # Writable otel configs
 cp /app/code/config/otel-collector-config.yaml /run/signoz/otel-collector-config.yaml

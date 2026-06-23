@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!-- Cloudron: only /app/data, /run, and /tmp are writable at runtime. -->
+<clickhouse>
+    <logger>
+        <log>/app/data/clickhouse/log/clickhouse-server.log</log>
+        <errorlog>/app/data/clickhouse/log/clickhouse-server.err.log</errorlog>
+    </logger>
+    <path>/app/data/clickhouse/</path>
+    <tmp_path>/app/data/clickhouse/tmp/</tmp_path>
+    <user_files_path>/app/data/clickhouse/user_files/</user_files_path>
+    <format_schema_path>/app/data/clickhouse/format_schemas/</format_schema_path>
+    <user_scripts_path>/app/code/config/clickhouse/user_scripts/</user_scripts_path>
+    <user_directories>
+        <local_directory>
+            <path>/app/data/clickhouse/access/</path>
+        </local_directory>
+    </user_directories>
+</clickhouse>

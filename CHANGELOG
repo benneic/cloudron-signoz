@@ -1,3 +1,6 @@
+[0.129.0.1]
+* Fix startup on Cloudron read-only filesystem: ClickHouse logs/data and ZooKeeper config under `/app/data` and `/run`.
+
 [0.129.0]
 * Initial public packaging for Cloudron: unified SigNoz v0.129.0 stack (ZooKeeper, ClickHouse, SigNoz, OTel collector v0.144.5).
 * Addons: localstorage, postgresql (metadata), sendmail (alert SMTP).
