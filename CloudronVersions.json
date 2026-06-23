@@ -26,7 +26,10 @@
                     "sync"
                 ],
                 "mediaLinks": [
-                    "https://signoz.io/img/hero.webp"
+                    "https://raw.githubusercontent.com/benneic/cloudron-signoz/main/assets/signoz-screenshot-apm.png",
+                    "https://raw.githubusercontent.com/benneic/cloudron-signoz/main/assets/signoz-screenshot-logs.png",
+                    "https://raw.githubusercontent.com/benneic/cloudron-signoz/main/assets/signoz-screenshot-tracing.png",
+                    "https://raw.githubusercontent.com/benneic/cloudron-signoz/main/assets/signoz-screenshot-dashboards.png"
                 ],
                 "healthCheckPath": "/api/v1/health",
                 "httpPort": 8080,
