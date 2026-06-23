@@ -28,18 +28,21 @@ RUN set -eux; \
     supervisor curl wget ca-certificates procps netcat-openbsd gosu; \
   rm -rf /var/lib/apt/lists/*
 
-# ClickHouse
-COPY --from=clickhouse-upstream /usr/bin/clickhouse /usr/bin/clickhouse
-COPY --from=clickhouse-upstream /usr/bin/clickhouse-server /usr/bin/clickhouse-server
-COPY --from=clickhouse-upstream /usr/bin/clickhouse-client /usr/bin/clickhouse-client
-COPY --from=clickhouse-upstream /usr/bin/clickhouse-keeper /usr/bin/clickhouse-keeper
-COPY --from=clickhouse-upstream /usr/lib/clickhouse /usr/lib/clickhouse
+# ClickHouse: copy binaries and support files from upstream image (layout varies by tag)
+RUN --mount=from=clickhouse-upstream,source=/,target=/ch,readonly \
+  set -eux; \
+  for f in /ch/usr/bin/clickhouse /ch/usr/bin/clickhouse-server /ch/usr/bin/clickhouse-client; do \
+    if [ -e "$f" ] || [ -L "$f" ]; then cp -a "$f" /usr/bin/; fi; \
+  done; \
+  if [ -d /ch/usr/lib/clickhouse ]; then cp -a /ch/usr/lib/clickhouse /usr/lib/; fi; \
+  if [ -d /ch/usr/share/clickhouse ]; then cp -a /ch/usr/share/clickhouse /usr/share/; fi; \
+  command -v clickhouse-server; \
+  command -v clickhouse
 COPY --from=clickhouse-upstream /entrypoint.sh /usr/local/bin/clickhouse-entrypoint.sh
 RUN chmod +x /usr/local/bin/clickhouse-entrypoint.sh
 
-# ZooKeeper (Bitnami layout from signoz/zookeeper image)
+# ZooKeeper (Bitnami layout; Java is bundled under /opt/bitnami/java)
 COPY --from=zookeeper-upstream /opt/bitnami /opt/bitnami
-COPY --from=zookeeper-upstream /usr/lib/jvm /usr/lib/jvm
 
 # SigNoz server (community binary + UI assets)
 COPY --from=signoz-upstream /root/signoz /opt/signoz/signoz
