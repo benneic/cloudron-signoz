@@ -1,4 +1,4 @@
-# Weekly: if SigNoz/signoz has a new release, bump main, tag, and trigger release build.
+# Weekly: if SigNoz/signoz has a new release, bump main, build, publish catalog, tag.
 name: Upstream release watch
 
 on:
@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 concurrency:
   group: upstream-release
@@ -15,10 +16,19 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  REGISTRY: ghcr.io
 
 jobs:
-  check:
+  plan:
     runs-on: ubuntu-latest
+    outputs:
+      action: ${{ steps.plan.outputs.action }}
+      version: ${{ steps.meta.outputs.upstream }}
+      relurl: ${{ steps.meta.outputs.relurl }}
+      tag: ${{ steps.meta.outputs.tag }}
+      otelcol: ${{ steps.versions.outputs.otelcol }}
+      clickhouse: ${{ steps.versions.outputs.clickhouse }}
+      zookeeper: ${{ steps.versions.outputs.zookeeper }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -51,58 +61,73 @@ jobs:
           set -eux
           chmod +x scripts/resolve-upstream-versions.sh
           eval "$(./scripts/resolve-upstream-versions.sh "${{ steps.meta.outputs.tag }}")"
-          echo "signoz=${SIGNOZ_VERSION}" >> "$GITHUB_OUTPUT"
           echo "otelcol=${OTELCOL_VERSION}" >> "$GITHUB_OUTPUT"
           echo "clickhouse=${CLICKHOUSE_VERSION}" >> "$GITHUB_OUTPUT"
           echo "zookeeper=${ZOOKEEPER_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Plan release action
         id: plan
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -eux
           UP="${{ steps.meta.outputs.upstream }}"
-          CUR=$(sed -n 's/^ARG SIGNOZ_VERSION=//p' Dockerfile | head -1)
-          if [ -z "$CUR" ]; then
-            echo "Could not read SIGNOZ_VERSION from Dockerfile" >&2
+          CUR_U=$(jq -r .upstreamVersion CloudronManifest.json)
+          CUR_PKG=$(jq -r .version CloudronManifest.json)
+          SIGNOZ_D=$(sed -n 's/^ARG SIGNOZ_VERSION=//p' Dockerfile | head -1)
+          if [ -z "$CUR_U" ] || [ -z "$CUR_PKG" ] || [ -z "$SIGNOZ_D" ]; then
+            echo "Could not read versions" >&2
             exit 1
           fi
-          CUR_M=$(jq -r .version CloudronManifest.json)
-          if [ "$CUR" != "$CUR_M" ]; then
-            echo "Dockerfile vs CloudronManifest.json: $CUR != $CUR_M" >&2
+          if [ "$SIGNOZ_D" != "$CUR_U" ]; then
+            echo "Dockerfile SIGNOZ_VERSION ($SIGNOZ_D) != manifest upstreamVersion ($CUR_U)" >&2
             exit 1
           fi
 
-          if git ls-remote --tags origin "refs/tags/v${UP}" | grep -q .; then
+          if jq -e ".versions[\"${UP}\"]" CloudronVersions.json >/dev/null; then
             echo "action=none" >> "$GITHUB_OUTPUT"
-            echo "Release tag v${UP} already exists" >&2
+            echo "Version ${UP} already published in CloudronVersions.json" >&2
             exit 0
           fi
 
-          if [ "$UP" = "$CUR" ]; then
-            echo "action=tag_only" >> "$GITHUB_OUTPUT"
+          if dpkg --compare-versions "$UP" "gt" "$CUR_U" 2>/dev/null; then
+            echo "action=bump" >> "$GITHUB_OUTPUT"
+            echo "Will bump upstream from ${CUR_U} to ${UP}" >&2
             exit 0
           fi
 
-          if ! dpkg --compare-versions "$UP" "gt" "$CUR" 2>/dev/null; then
-            echo "action=none" >> "$GITHUB_OUTPUT"
-            echo "Not newer: upstream=$UP current=$CUR" >&2
+          if [ "$UP" = "$CUR_PKG" ] && [ "$UP" = "$CUR_U" ]; then
+            echo "action=release" >> "$GITHUB_OUTPUT"
+            echo "Main is at ${UP}; will build and publish catalog entry" >&2
             exit 0
           fi
 
-          echo "action=bump" >> "$GITHUB_OUTPUT"
+          echo "action=none" >> "$GITHUB_OUTPUT"
+          echo "Upstream ${UP} does not match main (package=${CUR_PKG}, upstreamVersion=${CUR_U})" >&2
+
+  bump:
+    needs: plan
+    if: needs.plan.outputs.action == 'bump'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Sync main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git pull --ff-only origin main
 
       - name: Apply version bump
-        if: steps.plan.outputs.action == 'bump'
         run: |
           set -eux
-          U="${{ steps.meta.outputs.upstream }}"
-          RELURL="${{ steps.meta.outputs.relurl }}"
+          U="${{ needs.plan.outputs.version }}"
+          RELURL="${{ needs.plan.outputs.relurl }}"
           sed -i "s/^ARG SIGNOZ_VERSION=.*/ARG SIGNOZ_VERSION=${U}/" Dockerfile
-          sed -i "s/^ARG OTELCOL_VERSION=.*/ARG OTELCOL_VERSION=${{ steps.versions.outputs.otelcol }}/" Dockerfile
-          sed -i "s/^ARG CLICKHOUSE_VERSION=.*/ARG CLICKHOUSE_VERSION=${{ steps.versions.outputs.clickhouse }}/" Dockerfile
-          sed -i "s/^ARG ZOOKEEPER_VERSION=.*/ARG ZOOKEEPER_VERSION=${{ steps.versions.outputs.zookeeper }}/" Dockerfile
+          sed -i "s/^ARG OTELCOL_VERSION=.*/ARG OTELCOL_VERSION=${{ needs.plan.outputs.otelcol }}/" Dockerfile
+          sed -i "s/^ARG CLICKHOUSE_VERSION=.*/ARG CLICKHOUSE_VERSION=${{ needs.plan.outputs.clickhouse }}/" Dockerfile
+          sed -i "s/^ARG ZOOKEEPER_VERSION=.*/ARG ZOOKEEPER_VERSION=${{ needs.plan.outputs.zookeeper }}/" Dockerfile
           tmp=$(mktemp)
           jq --arg v "$U" '.version = $v | .upstreamVersion = $v' CloudronManifest.json > "$tmp" && mv "$tmp" CloudronManifest.json
           ctmp=$(mktemp)
@@ -114,12 +139,11 @@ jobs:
           } > "$ctmp" && mv "$ctmp" CHANGELOG
 
       - name: Commit version bump to main
-        if: steps.plan.outputs.action == 'bump'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -eux
-          U="${{ steps.meta.outputs.upstream }}"
+          U="${{ needs.plan.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
@@ -127,18 +151,114 @@ jobs:
           git commit -m "chore: bump SigNoz to ${U}"
           git push origin HEAD:main
 
-      - name: Create and push release tag
-        if: steps.plan.outputs.action == 'bump' || steps.plan.outputs.action == 'tag_only'
+  release:
+    needs: [plan, bump]
+    if: |
+      needs.plan.outputs.action == 'release' ||
+      (needs.plan.outputs.action == 'bump' && needs.bump.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Sync main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git pull --ff-only origin main
+
+      - name: Verify manifest matches release version
+        run: |
+          set -eux
+          V="${{ needs.plan.outputs.version }}"
+          M=$(jq -r .version CloudronManifest.json)
+          U=$(jq -r .upstreamVersion CloudronManifest.json)
+          D=$(sed -n 's/^ARG SIGNOZ_VERSION=//p' Dockerfile | head -1)
+          if [ "$M" != "$V" ] || [ "$U" != "$V" ] || [ "$D" != "$V" ]; then
+            echo "Version $V != manifest ($M / $U) or Dockerfile ($D)" >&2
+            exit 1
+          fi
+
+      - name: Read component build args
+        id: args
+        run: |
+          echo "signoz=$(jq -r .upstreamVersion CloudronManifest.json)" >> "$GITHUB_OUTPUT"
+          echo "otelcol=$(sed -n 's/^ARG OTELCOL_VERSION=//p' Dockerfile | head -1)" >> "$GITHUB_OUTPUT"
+          echo "clickhouse=$(sed -n 's/^ARG CLICKHOUSE_VERSION=//p' Dockerfile | head -1)" >> "$GITHUB_OUTPUT"
+          echo "zookeeper=$(sed -n 's/^ARG ZOOKEEPER_VERSION=//p' Dockerfile | head -1)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image reference
+        id: im
+        run: |
+          o=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr "[:upper:]" "[:lower:]")
+          echo "name=${{ env.REGISTRY }}/${o}/signoz-cloudron:${{ needs.plan.outputs.version }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          build-args: |
+            SIGNOZ_VERSION=${{ steps.args.outputs.signoz }}
+            OTELCOL_VERSION=${{ steps.args.outputs.otelcol }}
+            CLICKHOUSE_VERSION=${{ steps.args.outputs.clickhouse }}
+            ZOOKEEPER_VERSION=${{ steps.args.outputs.zookeeper }}
+          tags: ${{ steps.im.outputs.name }}
+
+      - name: Verify image health
+        run: |
+          chmod +x scripts/verify-image.sh
+          scripts/verify-image.sh "${{ steps.im.outputs.name }}"
+
+      - name: Publish catalog on main
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -eux
-          U="${{ steps.meta.outputs.upstream }}"
+          VER="${{ needs.plan.outputs.version }}"
+          IMAGE="${{ steps.im.outputs.name }}"
+
+          if jq -e ".versions[\"${VER}\"]" CloudronVersions.json >/dev/null; then
+            echo "Version ${VER} already in CloudronVersions.json on main"
+            exit 0
+          fi
+
+          npm ci
+          node scripts/publish-version.mjs "${IMAGE}"
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git fetch origin main
-          git checkout main
-          git pull --ff-only origin main
+          git add CloudronVersions.json
+          git commit -m "chore(versions): publish v${VER} in Cloudron catalog"
+          git push origin main
+          echo "Published ${VER} -> ${IMAGE}"
+
+      - name: Create and push release tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eux
+          U="${{ needs.plan.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --tags origin "refs/tags/v${U}" | grep -q .; then
+            echo "Tag v${U} already exists"
+            exit 0
+          fi
           git tag -a "v${U}" -m "Release SigNoz ${U} for Cloudron"
           git push origin "v${U}"
