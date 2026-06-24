@@ -1,3 +1,6 @@
+[0.130.0]
+* Bump [SigNoz 0.130.0](https://github.com/SigNoz/signoz/releases/tag/v0.130.0).
+
 [0.129.3]
 * Fix SigNoz crash on Cloudron: run server from writable `/app/data/signoz` (Prometheus `queries.active` mmap).
 
