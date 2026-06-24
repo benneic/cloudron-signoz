@@ -90,19 +90,9 @@ Restore both together for a consistent system.
 
 ## Automation in this repo
 
-Fully automated release pipeline:
-
-1. **Upstream watch (weekly / manual)** — [upstream-watch.yml](.github/workflows/upstream-watch.yml) checks [SigNoz/signoz](https://github.com/SigNoz/signoz) for a newer release. When needed it bumps component versions on `main`, builds and pushes `ghcr.io/benneic/signoz-cloudron:<ver>`, runs [scripts/verify-image.sh](scripts/verify-image.sh), commits the new entry to [CloudronVersions.json](CloudronVersions.json), and pushes tag `vX.Y.Z`. If `main` already matches upstream but the catalog entry is missing, it builds and publishes without re-bumping.
-2. **Release build (manual)** — [build.yml](.github/workflows/build.yml) is for hand-cut tags or **Actions → Release build → Run workflow**. Tag pushes and `workflow_dispatch` still build and (for tag pushes) update the catalog; the weekly upstream pipeline does not depend on a second workflow run.
+[upstream-watch.yml](.github/workflows/upstream-watch.yml) checks [SigNoz/signoz](https://github.com/SigNoz/signoz) for a newer release every Monday (06:00 UTC), or on demand via **Actions → Upstream release watch → Run workflow**. When needed it bumps component versions on `main`, builds and pushes `ghcr.io/benneic/signoz-cloudron:<ver>`, runs [scripts/verify-image.sh](scripts/verify-image.sh), commits the new entry to [CloudronVersions.json](CloudronVersions.json), and pushes tag `vX.Y.Z`. If `main` already matches upstream but the catalog entry is missing, it builds and publishes without re-bumping.
 
 **Requirements:** GitHub → Settings → Actions → General → workflow permissions **Read and write**. Make the `ghcr.io/benneic/signoz-cloudron` package **public**. If `main` is branch-protected, allow `github-actions[bot]` to push.
-
-**Manual release:**
-
-```bash
-git tag -a vX.Y.Z -m "Release SigNoz X.Y.Z for Cloudron"
-git push origin vX.Y.Z
-```
 
 ## GitHub repository setup
 
