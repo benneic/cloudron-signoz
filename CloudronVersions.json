@@ -240,6 +240,66 @@
             "creationDate": "Wed, 24 Jun 2026 06:07:03 GMT",
             "ts": "Wed, 24 Jun 2026 06:07:03 GMT",
             "publishState": "published"
+        },
+        "0.130.1": {
+            "manifest": {
+                "id": "com.signoz.cloudronapp",
+                "title": "SigNoz",
+                "author": "SigNoz (upstream) <hello@signoz.io>",
+                "tagline": "OpenTelemetry-native observability — packaged for Cloudron",
+                "version": "0.130.1",
+                "upstreamVersion": "0.130.1",
+                "description": "# SigNoz for Cloudron\n\n[SigNoz](https://signoz.io/) is an open source OpenTelemetry-native observability platform: traces, metrics, logs, dashboards, and alerting in one place. This package runs the **Community Edition** stack (ZooKeeper, ClickHouse, SigNoz server, OTel collector) in a single Cloudron app container.\n\n**What you get**\n\n- **Telemetry storage**: embedded ClickHouse and ZooKeeper on [local storage](https://docs.cloudron.io/packaging/addons/) (`/app/data`).\n- **Metadata**: Cloudron [PostgreSQL](https://docs.cloudron.io/packaging/addons/) for users, dashboards, and org settings.\n- **Alert email**: [Sendmail](https://docs.cloudron.io/packaging/addons/) addon mapped to SigNoz Alertmanager SMTP settings.\n- **OTLP ingestion**: expose ports **4317** (gRPC) and **4318** (HTTP) via Cloudron TCP port bindings for instrumented apps.\n\n**Relationship to upstream**\n\nThis is *unofficial* packaging. Application binaries come from official [SigNoz/signoz](https://github.com/SigNoz/signoz) Docker images; this repository adds Cloudron base, orchestration, and manifest. Report product bugs to SigNoz; report packaging issues to this repo’s issue tracker.\n\n**Licensing**\n\nSigNoz Community Edition is open source ([MIT](https://github.com/SigNoz/signoz/blob/main/LICENSE)). Enterprise-only features (SAML/OIDC SSO, etc.) are per upstream.\n",
+                "changelog": "* Bump [SigNoz 0.130.1](https://github.com/SigNoz/signoz/releases/tag/v0.130.1).\n",
+                "postInstallMessage": "<nosso>\n## First steps\n\n1. Open your app URL in a browser. **The first user to register becomes the org admin.**\n2. Instrument apps with OpenTelemetry and send data to your Cloudron OTLP endpoints (HTTP **4318** or gRPC **4317** port bindings).\n3. Configure alert notification channels under **Settings → Alert Channels** (email SMTP is pre-wired from the Sendmail addon).\n\n## Authentication\n\nSigNoz uses its own login (not Cloudron SSO). Optional **Google Workspace SSO** can be configured under **Settings → Organization Settings → Authenticated Domains**. SAML/OIDC require SigNoz Enterprise.\n\n## Data and backups\n\n- **PostgreSQL addon**: users, dashboards, org metadata.\n- **Local storage**: ClickHouse telemetry (largest disk use) and app secrets.\n- Enable Cloudron backups for this app — restore needs **both** postgres and localstorage to stay consistent.\n\n## Resources\n\n- Default memory: **6 GB**. Increase if you ingest high telemetry volume.\n- Plan disk for `/app/data/clickhouse` — telemetry grows quickly.\n\n## Docs\n\n- Application: <https://signoz.io/docs/>\n- This package: <https://github.com/benneic/cloudron-signoz>\n</nosso>\n",
+                "icon": "file://icon.png",
+                "iconUrl": "https://avatars.githubusercontent.com/u/87304438?s=256&v=4",
+                "website": "https://signoz.io/",
+                "documentationUrl": "https://signoz.io/docs/",
+                "contactEmail": "hello@signoz.io",
+                "configurePath": "/",
+                "packagerName": "SigNoz (Cloudron package) by @benneic",
+                "packagerUrl": "https://github.com/benneic/cloudron-signoz",
+                "tags": [
+                    "monitoring",
+                    "hosting",
+                    "sync"
+                ],
+                "mediaLinks": [
+                    "https://raw.githubusercontent.com/benneic/cloudron-signoz/main/assets/signoz-screenshot-apm.png",
+                    "https://raw.githubusercontent.com/benneic/cloudron-signoz/main/assets/signoz-screenshot-logs.png",
+                    "https://raw.githubusercontent.com/benneic/cloudron-signoz/main/assets/signoz-screenshot-tracing.png",
+                    "https://raw.githubusercontent.com/benneic/cloudron-signoz/main/assets/signoz-screenshot-dashboards.png"
+                ],
+                "healthCheckPath": "/api/v1/health",
+                "httpPort": 8080,
+                "minBoxVersion": "9.1.0",
+                "memoryLimit": 6442450944,
+                "manifestVersion": 2,
+                "tcpPorts": {
+                    "OTLP_GRPC": {
+                        "title": "OTLP gRPC",
+                        "description": "OpenTelemetry gRPC ingestion endpoint",
+                        "defaultValue": 4317,
+                        "containerPort": 4317
+                    },
+                    "OTLP_HTTP": {
+                        "title": "OTLP HTTP",
+                        "description": "OpenTelemetry HTTP ingestion endpoint",
+                        "defaultValue": 4318,
+                        "containerPort": 4318
+                    }
+                },
+                "addons": {
+                    "localstorage": {},
+                    "sendmail": {},
+                    "postgresql": {}
+                },
+                "dockerImage": "ghcr.io/benneic/signoz-cloudron:0.130.1"
+            },
+            "creationDate": "Mon, 29 Jun 2026 11:08:54 GMT",
+            "ts": "Mon, 29 Jun 2026 11:08:54 GMT",
+            "publishState": "published"
         }
     }
 }
