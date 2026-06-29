@@ -1,7 +1,7 @@
 # Cloudron packaging for SigNoz: unified stack (ZooKeeper, ClickHouse, SigNoz, OTel collector).
 # Final stage must use cloudron/base per https://docs.cloudron.io/packaging/guidelines/
 
-ARG SIGNOZ_VERSION=0.130.0
+ARG SIGNOZ_VERSION=0.130.1
 ARG OTELCOL_VERSION=0.142.0
 ARG CLICKHOUSE_VERSION=25.5.6
 ARG ZOOKEEPER_VERSION=3.7.1
@@ -13,7 +13,7 @@ FROM signoz/zookeeper:${ZOOKEEPER_VERSION} AS zookeeper-upstream
 
 FROM cloudron/base:5.0.0@sha256:04fd70dbd8ad6149c19de39e35718e024417c3e01dc9c6637eaf4a41ec4e596c
 
-ARG SIGNOZ_VERSION=0.130.0
+ARG SIGNOZ_VERSION=0.130.1
 ARG OTELCOL_VERSION=0.142.0
 ARG CLICKHOUSE_VERSION=25.5.6
 ARG ZOOKEEPER_VERSION=3.7.1
