@@ -90,7 +90,7 @@ Restore both together for a consistent system.
 
 ## Automation in this repo
 
-[upstream-watch.yml](.github/workflows/upstream-watch.yml) checks [SigNoz/signoz](https://github.com/SigNoz/signoz) for a newer release every Monday (06:00 UTC), or on demand via **Actions → Upstream release watch → Run workflow**. When needed it bumps component versions on `main`, builds and pushes `ghcr.io/benneic/signoz-cloudron:<ver>`, runs [scripts/verify-image.sh](scripts/verify-image.sh), commits the new entry to [CloudronVersions.json](CloudronVersions.json), and pushes tag `vX.Y.Z`. If `main` already matches upstream but the catalog entry is missing, it builds and publishes without re-bumping.
+[upstream-watch.yml](.github/workflows/upstream-watch.yml) checks [SigNoz/signoz](https://github.com/SigNoz/signoz) for a newer release every Monday (06:00 UTC), or on demand via **Actions → Upstream release watch → Run workflow**. When needed it bumps component versions on `main`, builds and pushes `ghcr.io/benneic/signoz-cloudron:<ver>`, runs [scripts/verify-image.sh](scripts/verify-image.sh), commits the new entry to [CloudronVersions.json](CloudronVersions.json), pushes tag `vX.Y.Z`, and creates a matching GitHub Release. If `main` already matches upstream but the catalog entry is missing (for example after a failed build), it builds and publishes without re-bumping. Each run also re-enables the workflow so GitHub does not auto-disable the schedule after 60 days of inactivity.
 
 **Requirements:** GitHub → Settings → Actions → General → workflow permissions **Read and write**. Make the `ghcr.io/benneic/signoz-cloudron` package **public**. If `main` is branch-protected, allow `github-actions[bot]` to push.
 
